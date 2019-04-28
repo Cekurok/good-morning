@@ -55,10 +55,15 @@ class KeyRatiosDownloader(object):
         :param currency: Sets currency.
         :return: List of pandas.DataFrames containing the key ratios.
         """
-        url = (r'http://financials.morningstar.com/ajax/exportKR2CSV.html?' +
+        url = (r'http://financials.morningstar.com/finan/ajax/exportKR2CSV.html?' +
                r'&callback=?&t={t}&region={reg}&culture={cult}&cur={cur}'.format(
                    t=ticker, reg=region, cult=culture, cur=currency))
-        with urllib.request.urlopen(url) as response:
+        #print(url)
+        req = urllib.request.Request(url)
+        req.add_header('Referer', ("http://financials.morningstar.com/ratios/r.html?t={t}&region=?{reg}&culture={cult}").format(
+                   t=ticker, reg=region, cult=culture))
+
+        with urllib.request.urlopen(req) as response:
             tables = self._parse_tables(response)
             response_structure = [
                 # Original Name, New pandas.DataFrame Name
@@ -183,7 +188,7 @@ class KeyRatiosDownloader(object):
         if re.match(r'^\d{4}-\d{2}$', output_frame.ix[0][0]):
             output_frame.drop(output_frame.index[0], inplace=True)
         output_frame.replace(u',', u'', regex=True, inplace=True)
-        output_frame.replace(u'^\s*$', u'NaN', regex=True, inplace=True)
+        output_frame.replace(r'^\s*$', u'NaN', regex=True, inplace=True)
         return output_frame.astype(float)
 
     def _upload_frames_to_db(self, ticker, frames,
@@ -330,6 +335,8 @@ class FinancialsDownloader(object):
                r'&region=usa&culture=en-US&cur=USD' +
                r'&reportType=' + report_type + r'&period=12' +
                r'&dataType=A&order=asc&columnYear=5&rounding=3&view=raw')
+        
+        #print(url)
         with urllib.request.urlopen(url) as response:
             json_text = response.read().decode(u'utf-8')
 
@@ -476,7 +483,7 @@ class FinancialsDownloader(object):
         :return MySQL CREATE TABLE statement.
         """
         year = date.today().year
-        year_range = xrange(year - 6, year + 2)
+        year_range = range(year - 6, year + 2)
         columns = u',\n'.join(
             [u'  `year_%d` DECIMAL(20,5) DEFAULT NULL ' % year +
              u'COMMENT "Year %d"' % year
