@@ -58,7 +58,6 @@ class KeyRatiosDownloader(object):
         url = (r'http://financials.morningstar.com/finan/ajax/exportKR2CSV.html?' +
                r'&callback=?&t={t}&region={reg}&culture={cult}&cur={cur}'.format(
                    t=ticker, reg=region, cult=culture, cur=currency))
-        #print(url)
         req = urllib.request.Request(url)
         req.add_header('Referer', ("http://financials.morningstar.com/ratios/r.html?t={t}&region=?{reg}&culture={cult}").format(
                    t=ticker, reg=region, cult=culture))
@@ -336,7 +335,6 @@ class FinancialsDownloader(object):
                r'&reportType=' + report_type + r'&period=12' +
                r'&dataType=A&order=asc&columnYear=5&rounding=3&view=raw')
         
-        #print(url)
         with urllib.request.urlopen(url) as response:
             json_text = response.read().decode(u'utf-8')
 
